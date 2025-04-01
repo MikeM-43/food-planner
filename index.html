@@ -8,89 +8,106 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  
-  <div class="hero">
-    <div class="container">
-      <h1>Food Planner</h1>
-      <h2 class="hero-tagline">Fuel Your Goals,<br>Transform Your Body</h2>
-      <p class="hero-description">Custom meal recommendations designed to align with your fitness objectives, whether you're looking to shred, bulk, or maintain.</p>
-    </div>
-  </div>
-
-  <div class="container main-content">
-    <div class="tabs">
-      <button class="tab-button active" onclick="showTab('meal-tab')">Meal Finder</button>
+  <nav class="nav">
+    <a href="/" class="logo">LOGO</a>
+    <div class="nav-tabs">
+      <button class="tab-button active" onclick="showTab('inspiration-tab')">Find Meals</button>
       <button class="tab-button" onclick="showTab('shopping-tab')">Shopping List</button>
     </div>
-    
-    <button class="mobile-menu-button" onclick="toggleMobileMenu()">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="3" y1="12" x2="21" y2="12"></line>
-        <line x1="3" y1="6" x2="21" y2="6"></line>
-        <line x1="3" y1="18" x2="21" y2="18"></line>
-      </svg>
-    </button>
+  </nav>
 
-    <div class="mobile-menu">
-      <a href="#" class="mobile-menu-item" onclick="showTab('meal-tab'); toggleMobileMenu();">Meal Finder</a>
-      <a href="#" class="mobile-menu-item" onclick="showTab('shopping-tab'); toggleMobileMenu();">Shopping List</a>
+  <section class="hero">
+    <div class="hero-content">
+      <h1>Put some prep in your step</h1>
+      <p class="hero-tagline">Save time with meals that match your goals</p>
+      <div class="search-controls">
+        <select id="mainIngredient" class="search-select">
+          <option value="">Select Main Ingredient</option>
+        </select>
+        <select id="goal" class="search-select">
+          <option value="">Select Goal</option>
+        </select>
+        <button id="findMeals" class="search-button">Find meals</button>
+      </div>
     </div>
-    
-    <div id="meal-tab" class="tab-content active">
-      <div class="filter-controls">
-        <div class="filter-group">
-          <label for="mainingredientFilter">Main Ingredient</label>
-          <select id="mainingredientFilter">
-            <option value="">Any</option>
-            <option value="Chicken">Chicken</option>
-            <option value="Beef">Beef</option>
-            <option value="Fish">Fish</option>
-            <option value="Steak">Steak</option>
-            <option value="Other">Other</option>
-          </select>
-        </div>
-        
-        <div class="filter-group">
-          <label for="goalFilter">Goal</label>
-          <select id="goalFilter">
-            <option value="">Any</option>
-            <option value="Shred">Shred</option>
-            <option value="Bulk">Bulk</option>
-            <option value="Maintain">Maintain</option>
-          </select>
-        </div>
-        
-        <div class="filter-group">
-          <div class="checkbox-group">
-            <input type="checkbox" id="caloriesToggle">
-            <label for="caloriesToggle">Show Calories</label>
+    <div class="hero-image">
+      <img src="https://images.unsplash.com/photo-1606858374191-c18040e98ad7?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Healthy meal prep bowls">
+    </div>
+  </section>
+
+  <section class="reasons">
+    <div class="container">
+      <div class="reasons-grid">
+        <div class="reason-card">
+          <div class="reason-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
           </div>
+          <h3>Search dozens of recipes</h3>
+          <p>Find the perfect meal for your goals</p>
         </div>
-        
-        <button onclick="filterMeals()">Find Meals</button>
+        <div class="reason-card">
+          <div class="reason-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+          </div>
+          <h3>Scale ingredients by meals</h3>
+          <p>Adjust portions to your needs</p>
+        </div>
+        <div class="reason-card">
+          <div class="reason-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+              <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+            </svg>
+          </div>
+          <h3>Copy shopping list to notes</h3>
+          <p>Take your list anywhere</p>
+        </div>
       </div>
-      
-      <div class="welcome-message">
-        <div class="welcome-text">Meal prep is just a click away 💪</div>
-      </div>
-      
-      <ul id="mealList"></ul>
     </div>
-    
-    <div id="shopping-tab" class="tab-content">
-      <div class="shopping-container">
-        <div class="shopping-header">
-          <div class="selected-meals-summary">
+  </section>
+
+  <div class="container main-content">
+    <!-- Tab Content -->
+    <div id="inspiration-tab" class="tab-content">
+      <section class="meal-inspo">
+        <h2>Meal Inspo 😍</h2>
+        <div id="randomMealList" class="meal-grid"></div>
+      </section>
+    </div>
+
+    <div id="meal-finder-tab" class="tab-content" style="display: none;">
+      <h2>Your Search Results</h2>
+      <div id="mealList" class="meal-grid"></div>
+    </div>
+
+    <div id="shopping-tab" class="tab-content" style="display: none;">
+      <div class="shopping-page">
+        <h2>Your Shopping List</h2>
+        <div class="shopping-list-container">
+          <div id="selectedMealsSummary">
             <h3>Selected Meals</h3>
             <ul id="selectedMealsList"></ul>
           </div>
+          
+          <div id="shoppingList">
+            <!-- Shopping categories will be populated here dynamically -->
+          </div>
+          
+          <div class="shopping-actions">
+            <button onclick="clearShoppingList()" class="clear-list-btn">Clear List</button>
+            <button onclick="copyListToClipboard()" class="action-btn">Save to Notes</button>
+            <button onclick="emailList()" class="action-btn">Email List</button>
+            <button onclick="shareWhatsApp()" class="action-btn">Share via WhatsApp</button>
+          </div>
         </div>
-        <div class="shopping-list-controls">
-          <button onclick="clearShoppingList()">Clear List</button>
-          <button onclick="copyListToClipboard()">Copy to Notes</button>
-          <button onclick="emailList()">Email List</button>
-        </div>
-        <ul id="shoppingList"></ul>
       </div>
     </div>
   </div>

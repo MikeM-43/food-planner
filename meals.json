@@ -1,0 +1,65 @@
+[
+  {
+    "name": "Chicken Stir Fry",
+    "mainIngredient": "Chicken",
+    "goal": "Shred",
+    "calories": "450",
+    "image": "https://images.unsplash.com/photo-1603133872878-684f208fb84b?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60"
+  },
+  {
+    "name": "Salmon with Quinoa",
+    "mainIngredient": "Fish",
+    "goal": "Maintain",
+    "calories": "550",
+    "image": "https://images.unsplash.com/photo-1467003909585-2f8a72700288?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60"
+  },
+  {
+    "name": "Protein Pancakes",
+    "mainIngredient": "Other",
+    "goal": "Bulk",
+    "calories": "650",
+    "image": "https://images.unsplash.com/photo-1528207776546-365bb710ee93?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60"
+  },
+  {
+    "name": "Beef Steak Bowl",
+    "mainIngredient": "Beef",
+    "goal": "Bulk",
+    "calories": "750",
+    "image": "https://images.unsplash.com/photo-1544025162-d76694265947?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60"
+  },
+  {
+    "name": "Greek Salad",
+    "mainIngredient": "Other",
+    "goal": "Shred",
+    "calories": "350",
+    "image": "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60"
+  },
+  {
+    "name": "Turkey Meatballs",
+    "mainIngredient": "Other",
+    "goal": "Maintain",
+    "calories": "500",
+    "image": "https://images.unsplash.com/photo-1529042410759-befb1204b468?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60"
+  },
+  {
+    "name": "Tuna Poke Bowl",
+    "mainIngredient": "Fish",
+    "goal": "Shred",
+    "calories": "400",
+    "image": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60"
+  },
+  {
+    "name": "Chicken Buddha Bowl",
+    "mainIngredient": "Chicken",
+    "goal": "Maintain",
+    "calories": "600",
+    "image": "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60"
+  },
+  {
+    "name": "Steak and Sweet Potato",
+    "mainIngredient": "Beef",
+    "goal": "Bulk",
+    "calories": "800",
+    "image": "https://images.unsplash.com/photo-1544025162-d76694265947?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60"
+  }
+] 
