@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Food Planner</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  
+  <div class="hero">
+    <div class="container">
+      <h1>Food Planner</h1>
+      <h2 class="hero-tagline">Fuel Your Goals,<br>Transform Your Body</h2>
+      <p class="hero-description">Custom meal recommendations designed to align with your fitness objectives, whether you're looking to shred, bulk, or maintain.</p>
+    </div>
+  </div>
+
+  <div class="container main-content">
+    <div class="tabs">
+      <button class="tab-button active" onclick="showTab('meal-tab')">Meal Finder</button>
+      <button class="tab-button" onclick="showTab('shopping-tab')">Shopping List</button>
+    </div>
+    
+    <button class="mobile-menu-button" onclick="toggleMobileMenu()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="3" y1="12" x2="21" y2="12"></line>
+        <line x1="3" y1="6" x2="21" y2="6"></line>
+        <line x1="3" y1="18" x2="21" y2="18"></line>
+      </svg>
+    </button>
+
+    <div class="mobile-menu">
+      <a href="#" class="mobile-menu-item" onclick="showTab('meal-tab'); toggleMobileMenu();">Meal Finder</a>
+      <a href="#" class="mobile-menu-item" onclick="showTab('shopping-tab'); toggleMobileMenu();">Shopping List</a>
+    </div>
+    
+    <div id="meal-tab" class="tab-content active">
+      <div class="filter-controls">
+        <div class="filter-group">
+          <label for="mainingredientFilter">Main Ingredient</label>
+          <select id="mainingredientFilter">
+            <option value="">Any</option>
+            <option value="Chicken">Chicken</option>
+            <option value="Beef">Beef</option>
+            <option value="Fish">Fish</option>
+            <option value="Steak">Steak</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        
+        <div class="filter-group">
+          <label for="goalFilter">Goal</label>
+          <select id="goalFilter">
+            <option value="">Any</option>
+            <option value="Shred">Shred</option>
+            <option value="Bulk">Bulk</option>
+            <option value="Maintain">Maintain</option>
+          </select>
+        </div>
+        
+        <div class="filter-group">
+          <div class="checkbox-group">
+            <input type="checkbox" id="caloriesToggle">
+            <label for="caloriesToggle">Show Calories</label>
+          </div>
+        </div>
+        
+        <button onclick="filterMeals()">Find Meals</button>
+      </div>
+      
+      <div class="welcome-message">
+        <div class="welcome-text">Meal prep is just a click away 💪</div>
+      </div>
+      
+      <ul id="mealList"></ul>
+    </div>
+    
+    <div id="shopping-tab" class="tab-content">
+      <div class="shopping-container">
+        <div class="shopping-header">
+          <div class="selected-meals-summary">
+            <h3>Selected Meals</h3>
+            <ul id="selectedMealsList"></ul>
+          </div>
+        </div>
+        <div class="shopping-list-controls">
+          <button onclick="clearShoppingList()">Clear List</button>
+          <button onclick="copyListToClipboard()">Copy to Notes</button>
+          <button onclick="emailList()">Email List</button>
+        </div>
+        <ul id="shoppingList"></ul>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
+
+
