@@ -9,7 +9,15 @@
 </head>
 <body>
   <nav class="nav">
-    <a href="/" class="logo">LOGO</a>
+    <a href="/" class="logo">
+      <span class="logo-text">PREP</span>
+      <svg class="logo-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 2L3 22"></path>
+        <path d="M7 2L7 22"></path>
+        <path d="M11 2L11 22"></path>
+        <path d="M15 2L15 22"></path>
+      </svg>
+    </a>
     <div class="nav-tabs">
       <button class="tab-button active" onclick="showTab('inspiration-tab')">Find Meals</button>
       <button class="tab-button" onclick="showTab('shopping-tab')">Shopping List</button>
@@ -18,14 +26,14 @@
 
   <section class="hero">
     <div class="hero-content">
-      <h1>Put some prep in your step</h1>
+      <h1>Put some <span class="prep">prep</span> in your step</h1>
       <p class="hero-tagline">Save time with meals that match your goals</p>
       <div class="search-controls">
         <select id="mainIngredient" class="search-select">
-          <option value="">Select Main Ingredient</option>
+          <option value="">Main Ingredient</option>
         </select>
         <select id="goal" class="search-select">
-          <option value="">Select Goal</option>
+          <option value="">Goal</option>
         </select>
         <button id="findMeals" class="search-button">Find meals</button>
       </div>
@@ -88,26 +96,26 @@
       <div id="mealList" class="meal-grid"></div>
     </div>
 
-    <div id="shopping-tab" class="tab-content" style="display: none;">
-      <div class="shopping-page">
-        <h2>Your Shopping List</h2>
-        <div class="shopping-list-container">
-          <div id="selectedMealsSummary">
-            <h3>Selected Meals</h3>
-            <ul id="selectedMealsList"></ul>
-          </div>
-          
-          <div id="shoppingList">
-            <!-- Shopping categories will be populated here dynamically -->
-          </div>
-          
-          <div class="shopping-actions">
-            <button onclick="clearShoppingList()" class="clear-list-btn">Clear List</button>
-            <button onclick="copyListToClipboard()" class="action-btn">Save to Notes</button>
-            <button onclick="emailList()" class="action-btn">Email List</button>
-            <button onclick="shareWhatsApp()" class="action-btn">Share via WhatsApp</button>
-          </div>
+    <div id="shopping-tab" class="tab-content">
+      <div id="selectedMealsSummary">
+        <div class="shopping-list-header">
+          <h2>Your Shopping List is ready! Chef's kiss 👩‍🍳</h2>
         </div>
+        <div class="selected-meals-counter">
+          <h3>Selected Meals</h3>
+          <div id="selectedMealsList"></div>
+        </div>
+      </div>
+      
+      <div id="shoppingList">
+        <!-- Shopping categories will be populated here dynamically -->
+      </div>
+      
+      <div class="shopping-actions">
+        <button onclick="clearShoppingList()" class="clear-list-btn">Clear List</button>
+        <button onclick="copyListToClipboard()" class="action-btn">Save to Notes</button>
+        <button onclick="emailList()" class="action-btn">Email List</button>
+        <button onclick="shareWhatsApp()" class="action-btn">Share via WhatsApp</button>
       </div>
     </div>
   </div>
