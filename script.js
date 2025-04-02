@@ -786,7 +786,8 @@ function copyListToClipboard() {
   if (selectedMeals.size > 0) {
     text += 'Selected Meals:\n';
     selectedMeals.forEach(meal => {
-      text += `- ${meal}\n`;
+      const servings = parseInt(localStorage.getItem(`servings_${meal}`)) || 1;
+      text += `- ${meal} (${servings} ${servings === 1 ? 'serving' : 'servings'})\n`;
     });
     text += '\n';
   }
@@ -795,17 +796,46 @@ function copyListToClipboard() {
   const categories = shoppingList.querySelectorAll('.shopping-category');
   categories.forEach(category => {
     const categoryName = category.querySelector('.category-header').textContent;
+    // Remove the emoji from category name
+    const cleanCategoryName = categoryName.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim();
     const items = category.querySelectorAll('li');
     
-    text += `${categoryName}:\n`;
-    items.forEach(item => {
-      text += `- ${item.querySelector('span').textContent}\n`;
-    });
-    text += '\n';
+    if (items.length > 0) {
+      text += `${cleanCategoryName}\n`;
+      items.forEach(item => {
+        const ingredientName = item.querySelector('.ingredient-name').textContent;
+        const ingredientAmount = item.querySelector('.ingredient-amount').textContent;
+        text += `- ${ingredientName}: ${ingredientAmount}\n`;
+      });
+      text += '\n';
+    }
   });
   
+  // Copy to clipboard and show feedback
   navigator.clipboard.writeText(text).then(() => {
-    showSaveMessage('List copied to clipboard!');
+    // Create save message
+    const saveMessage = document.createElement('div');
+    saveMessage.className = 'save-message';
+    saveMessage.textContent = 'List copied to clipboard!';
+    document.body.appendChild(saveMessage);
+    
+    // Remove the message after 2 seconds
+    setTimeout(() => {
+      saveMessage.remove();
+    }, 2000);
+  }).catch(err => {
+    console.error('Failed to copy text: ', err);
+    // Show error message
+    const saveMessage = document.createElement('div');
+    saveMessage.className = 'save-message';
+    saveMessage.textContent = 'Failed to copy list';
+    saveMessage.style.backgroundColor = '#ff5555';
+    document.body.appendChild(saveMessage);
+    
+    // Remove the error message after 2 seconds
+    setTimeout(() => {
+      saveMessage.remove();
+    }, 2000);
   });
 }
 
@@ -902,202 +932,10 @@ function displayRandomMeals() {
       </div>
     `;
     
-    // Add click event listener directly to the element
-    mealCard.addEventListener('click', function() {
+    mealCard.addEventListener('click', () => {
       showIngredients(meal);
     });
     
-    // Append to the container
     randomMealList.appendChild(mealCard);
   });
 }
-
-// Event listener for the find meals button
-document.getElementById('findMeals').addEventListener('click', function() {
-  const mainIngredient = document.getElementById('mainIngredient').value;
-  const goal = document.getElementById('goal').value;
-  
-  // First filter out incomplete meals
-  let validMeals = meals.filter(meal => 
-    meal.name && 
-    meal.image && 
-    (meal.mainIngredient || meal['main ingredient'])
-  );
-  
-  // Then apply user filters
-  let filteredMeals = validMeals;
-  
-  if (mainIngredient) {
-    filteredMeals = filteredMeals.filter(meal => 
-      (meal.mainIngredient === mainIngredient) || (meal['main ingredient'] === mainIngredient)
-    );
-  }
-  
-  if (goal) {
-    filteredMeals = filteredMeals.filter(meal => meal.goal === goal);
-  }
-  
-  // Handle the reasons section - move it after search results on first search
-  const reasonsSection = document.querySelector('.reasons');
-  const mealFinderTab = document.getElementById('meal-finder-tab');
-  
-  // If this is the first search (if reasons section is still in its original location)
-  if (reasonsSection && reasonsSection.parentElement !== mealFinderTab) {
-    reasonsSection.remove(); // Remove from current position
-    mealFinderTab.appendChild(reasonsSection); // Append to the meal finder tab
-  }
-  
-  const mealList = document.getElementById('mealList');
-  
-  // Clear existing content
-  mealList.innerHTML = '';
-  
-  if (filteredMeals.length === 0) {
-    const noResults = document.createElement("p");
-    noResults.textContent = "No results, please search again for some yummy food options 💪";
-    noResults.style.fontSize = "18px";
-    noResults.style.textAlign = "center";
-    noResults.style.marginTop = "20px";
-    mealList.appendChild(noResults);
-  } else {
-    // Create and append each meal card with proper event listeners
-    filteredMeals.forEach(meal => {
-      const mealCard = document.createElement('div');
-      mealCard.className = 'meal-card';
-      mealCard.style.cursor = 'pointer';
-      
-      // Create HTML structure for the meal card
-      mealCard.innerHTML = `
-        <img src="${meal.image}" alt="${meal.name}" onerror="this.src='https://images.unsplash.com/photo-1512621776951-a57141f2eefd?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80'">
-        <div class="meal-card-content">
-          <h3>${meal.name}</h3>
-          <div class="meal-tags">
-            ${meal.cuisine ? `<span class="meal-tag">${meal.cuisine}</span>` : ''}
-            ${(meal.mainIngredient || meal['main ingredient']) ? `<span class="meal-tag">${meal.mainIngredient || meal['main ingredient']}</span>` : ''}
-            ${meal.goal ? `<span class="meal-tag">${meal.goal}</span>` : ''}
-            ${meal.calories ? `<span class="meal-tag">${meal.calories} cal</span>` : ''}
-          </div>
-        </div>
-      `;
-      
-      // Add click event listener directly to the element
-      mealCard.addEventListener('click', function() {
-        showIngredients(meal);
-      });
-      
-      // Append to the container
-      mealList.appendChild(mealCard);
-    });
-  }
-  
-  // Switch to the meal finder tab to show results
-  showTab('meal-finder-tab');
-});
-
-// Initialize when the page loads
-document.addEventListener('DOMContentLoaded', loadMeals);
-
-// Add this function to handle going back to shopping list from recipe page
-function backToShoppingList() {
-  // Remove the recipe page if it exists
-  const recipePage = document.querySelector('.recipe-page-container');
-  if (recipePage) {
-    recipePage.remove();
-  }
-  
-  // Restore the original content
-  const mainContent = document.querySelector('.container.main-content');
-  if (mainContent) {
-    mainContent.style.display = 'block';
-  }
-  
-  // Hide the hero section when viewing shopping list
-  const heroSection = document.querySelector('.hero');
-  if (heroSection) {
-    heroSection.style.display = 'none';
-  }
-  
-  // Show the shopping tab
-  showTab('shopping-tab');
-  
-  // Restore normal scrolling
-  document.body.style.overflow = 'auto';
-}
-
-// Function to share shopping list via WhatsApp
-function shareWhatsApp() {
-  const shoppingList = document.getElementById('shoppingList');
-  let text = 'Prep List\n\n';
-  
-  // Add selected meals
-  if (selectedMeals.size > 0) {
-    text += 'Meals\n';
-    selectedMeals.forEach(meal => {
-      const servings = parseInt(localStorage.getItem(`servings_${meal}`)) || 1;
-      text += `- ${meal} (${servings} ${servings === 1 ? 'serving' : 'servings'})\n`;
-    });
-    text += '\n';
-  }
-  
-  // Add categorized items without emojis
-  const categories = shoppingList.querySelectorAll('.shopping-category');
-  categories.forEach(category => {
-    const categoryName = category.querySelector('.category-header').textContent;
-    // Remove the emoji from category name
-    const cleanCategoryName = categoryName.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim();
-    const items = category.querySelectorAll('li');
-    
-    if (items.length > 0) {
-      text += `${cleanCategoryName}\n`;
-      items.forEach(item => {
-        const ingredientName = item.querySelector('.ingredient-name').textContent;
-        const ingredientAmount = item.querySelector('.ingredient-amount').textContent;
-        text += `- ${ingredientName}: ${ingredientAmount}\n`;
-      });
-      text += '\n';
-    }
-  });
-  
-  // Encode the text for WhatsApp
-  const encodedText = encodeURIComponent(text);
-  
-  // Create WhatsApp URL
-  const whatsappURL = `https://wa.me/?text=${encodedText}`;
-  
-  // Open WhatsApp in new window
-  window.open(whatsappURL, '_blank');
-}
-
-// Add event listeners for editable ingredient amounts
-document.addEventListener('click', function(e) {
-  if (e.target.classList.contains('ingredient-amount')) {
-    e.target.focus();
-  }
-});
-
-document.addEventListener('blur', function(e) {
-  if (e.target.classList.contains('ingredient-amount')) {
-    const originalValue = parseFloat(e.target.dataset.original);
-    const newValue = parseFloat(e.target.textContent);
-    const metric = e.target.textContent.replace(/[0-9.]/g, '').trim();
-    
-    if (isNaN(newValue)) {
-      e.target.textContent = `${originalValue} ${metric}`;
-    } else {
-      e.target.dataset.original = newValue;
-      e.target.textContent = `${newValue} ${metric}`;
-    }
-    saveShoppingList();
-  }
-}, true);
-
-document.addEventListener('keydown', function(e) {
-  if (e.target.classList.contains('ingredient-amount')) {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      e.target.blur();
-    }
-  }
-});
-  
-  

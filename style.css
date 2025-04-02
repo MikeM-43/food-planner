@@ -803,7 +803,8 @@ html {
   }
   
   .recipe-grid {
-    margin-top: 0.5rem;
+    grid-template-columns: 1fr;
+    gap: 1rem;
   }
   
   .recipe-image {
@@ -820,6 +821,32 @@ html {
   
   .recipe-actions {
     flex-direction: column;
+  }
+
+  .recipe-ingredients {
+    order: -1;
+  }
+
+  .recipe-ingredients,
+  .recipe-instructions {
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+  }
+
+  .servings-control {
+    margin-bottom: 1.5rem;
+  }
+
+  .ingredients-list li {
+    padding: 0.625rem 0;
+  }
+
+  .instruction-step {
+    padding: 0.875rem;
+  }
+
+  .step-content {
+    font-size: 0.9375rem;
   }
 }
 
