@@ -803,8 +803,20 @@ html {
   }
   
   .recipe-grid {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
     gap: 1rem;
+  }
+  
+  .recipe-ingredients {
+    order: -1;
+    margin-bottom: 1rem;
+    max-height: none;
+    height: auto;
+  }
+  
+  .recipe-instructions {
+    margin-top: 0;
   }
   
   .recipe-image {
@@ -821,10 +833,6 @@ html {
   
   .recipe-actions {
     flex-direction: column;
-  }
-
-  .recipe-ingredients {
-    order: -1;
   }
 
   .recipe-ingredients,
