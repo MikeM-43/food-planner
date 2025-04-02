@@ -9,7 +9,7 @@
 </head>
 <body>
   <nav class="nav">
-    <a href="/" class="logo">
+    <a href="#" class="logo" onclick="event.preventDefault(); showTab('inspiration-tab');">
       <span class="logo-text">PREP</span>
       <svg class="logo-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M3 2L3 22"></path>
@@ -19,8 +19,8 @@
       </svg>
     </a>
     <div class="nav-tabs">
-      <button class="tab-button active" onclick="showTab('inspiration-tab')">Find Meals</button>
-      <button class="tab-button" onclick="showTab('shopping-tab')">Shopping List</button>
+      <button class="tab-button active" data-tab="inspiration-tab">Find Meals</button>
+      <button class="tab-button" data-tab="shopping-tab">Shopping List</button>
     </div>
   </nav>
 
@@ -35,7 +35,7 @@
         <select id="goal" class="search-select">
           <option value="">Goal</option>
         </select>
-        <button id="findMeals" class="search-button">Find meals</button>
+        <button id="findMeals" class="search-button" onclick="handleFindMeals()">Find meals</button>
       </div>
     </div>
     <div class="hero-image">

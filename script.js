@@ -153,13 +153,43 @@ window.onload = async function () {
   // Load meals and initialize meal displays
   await loadMeals();
   
+  // Set up event handlers for tab buttons
+  document.querySelectorAll('.tab-button').forEach(button => {
+    button.addEventListener('click', function() {
+      const tabId = this.getAttribute('data-tab');
+      if (tabId) {
+        showTab(tabId);
+      }
+    });
+  });
+
   // Set up event handlers for special cases
   document.querySelectorAll('.meal-card').forEach(card => {
     card.style.cursor = 'pointer';
   });
 };
 
-// Tab navigation
+function handleFindMeals() {
+  const mainIngredient = document.getElementById('mainIngredient').value;
+  const goal = document.getElementById('goal').value;
+  
+  // Hide welcome message after first search
+  const welcomeMessage = document.querySelector('.welcome-message');
+  if (welcomeMessage) {
+    welcomeMessage.style.display = 'none';
+  }
+  
+  const filteredMeals = meals.filter(meal => {
+    const matchesIngredient = !mainIngredient || (meal.mainIngredient === mainIngredient || meal['main ingredient'] === mainIngredient);
+    const matchesGoal = !goal || meal.goal === goal;
+    return matchesIngredient && matchesGoal;
+  });
+  
+  // Switch to meal finder tab
+  showTab('meal-finder-tab');
+  displayMeals(filteredMeals);
+}
+
 function showTab(tabId) {
   // Hide all tab contents
   document.querySelectorAll(".tab-content").forEach((content) => {
@@ -172,10 +202,13 @@ function showTab(tabId) {
   });
 
   // Show selected tab content
-  document.getElementById(tabId).style.display = "block";
+  const selectedTab = document.getElementById(tabId);
+  if (selectedTab) {
+    selectedTab.style.display = "block";
+  }
 
   // Add active class to clicked tab button
-  const activeButton = document.querySelector(`.tab-button[onclick="showTab('${tabId}')"]`);
+  const activeButton = document.querySelector(`.tab-button[data-tab="${tabId}"]`);
   if (activeButton) {
     activeButton.classList.add("active");
   }
