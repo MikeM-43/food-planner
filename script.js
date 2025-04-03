@@ -19,48 +19,61 @@ const shoppingCategories = {
 // Load meals data
 async function loadMeals() {
   try {
-    // Try to load from SheetDB first
+    console.log('Attempting to fetch meals from SheetDB...');
     const response = await fetch(SHEETDB_URL);
+    
     if (!response.ok) {
-      throw new Error('Failed to fetch from SheetDB');
+      throw new Error(`Failed to fetch from SheetDB: ${response.status} ${response.statusText}`);
     }
+    
     const data = await response.json();
     console.log('Raw API response:', data);
     
     // Transform the data
     meals = data.map(meal => {
-      console.log('Processing meal:', meal.name);
+      console.log('Processing meal:', meal);
       const recipeText = meal['recipie '] || meal.recipie || '';
+      const ingredients = meal.ingredients || '';
+      console.log('Ingredients for', meal.name, ':', ingredients);
+      
       return {
         ...meal,
         recipie: recipeText.trim(),
+        ingredients: ingredients.trim(),
         instructions: recipeText ? recipeText.split(/\d+\./).filter(step => step.trim()).map(step => step.trim()) : []
       };
     });
     
     console.log('Processed meals data:', meals);
+    
+    // After loading meals, populate filters and display meals
+    if (meals.length > 0) {
+      populateFilters();
+      displayRandomMeals();
+    } else {
+      console.error('No meals data loaded');
+    }
+    
   } catch (error) {
-    console.warn("Failed to load meals from SheetDB, falling back to local data:", error);
+    console.error("Failed to load meals from SheetDB:", error);
+    console.log("Attempting to load from local meals.json...");
+    
     try {
-      // Fallback to local meals.json
       const localResponse = await fetch('meals.json');
       if (!localResponse.ok) {
         throw new Error('Local meals.json response was not ok');
       }
       meals = await localResponse.json();
       console.log('Loaded meals from local file:', meals);
+      
+      if (meals.length > 0) {
+        populateFilters();
+        displayRandomMeals();
+      }
     } catch (localError) {
       console.error("Failed to load meals from both sources:", localError);
       meals = [];
     }
-  }
-
-  // After loading meals from either source, populate the filters and display random meals
-  if (meals.length > 0) {
-    populateFilters();
-    displayRandomMeals();
-  } else {
-    console.error('No meals data available');
   }
 }
 
@@ -167,6 +180,18 @@ window.onload = async function () {
   document.querySelectorAll('.meal-card').forEach(card => {
     card.style.cursor = 'pointer';
   });
+
+  // Set up event handlers for sharing buttons
+  const copyToNotesBtn = document.getElementById('copyToNotes');
+  const shareWhatsAppBtn = document.getElementById('shareWhatsApp');
+  
+  if (copyToNotesBtn) {
+    copyToNotesBtn.addEventListener('click', copyListToClipboard);
+  }
+  
+  if (shareWhatsAppBtn) {
+    shareWhatsAppBtn.addEventListener('click', shareViaWhatsApp);
+  }
 };
 
 function handleFindMeals() {
@@ -245,77 +270,33 @@ function filterMeals() {
   displayMeals(filteredMeals, showCalories);
 }
 
-function displayMeals(mealsToShow, showCalories = false) {
-  const list = document.getElementById("mealList");
-  list.innerHTML = "";
+function displayMeals(mealsToDisplay, showCalories = false) {
+  const mealList = document.getElementById('mealList');
+  mealList.innerHTML = '';
   
-  if (mealsToShow.length === 0) {
-    const noResults = document.createElement("p");
-    noResults.textContent = "No results, please search again for some yummy food options 💪";
-    noResults.style.fontSize = "18px";
-    noResults.style.textAlign = "center";
-    noResults.style.marginTop = "20px";
-    list.appendChild(noResults);
+  if (!mealsToDisplay || mealsToDisplay.length === 0) {
+    mealList.innerHTML = '<p>No meals found matching your criteria. Try adjusting your filters.</p>';
     return;
   }
-
-  mealsToShow.forEach((meal, index) => {
-    const li = document.createElement("li");
+  
+  mealsToDisplay.forEach(meal => {
+    const li = document.createElement('li');
+    li.onclick = () => showIngredients(meal);
     
-    const img = document.createElement("img");
-    img.src = meal.image || "https://via.placeholder.com/300x180?text=Yummy+Food";
-    img.alt = meal.name;
+    li.innerHTML = `
+      <img src="${meal.image || 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80'}" alt="${meal.name}">
+      <div class="meal-details">
+        <h3>${meal.name}</h3>
+        <div class="meal-tags">
+          ${meal.cuisine ? `<span class="meal-tag">${meal.cuisine}</span>` : ''}
+          ${meal.mainIngredient ? `<span class="meal-tag">${meal.mainIngredient}</span>` : ''}
+          ${meal.goal ? `<span class="meal-tag">${meal.goal}</span>` : ''}
+          ${meal.bulk ? `<span class="meal-tag">Bulk</span>` : ''}
+        </div>
+      </div>
+    `;
     
-    const detailsDiv = document.createElement("div");
-    detailsDiv.className = "meal-details";
-    
-    const nameHeading = document.createElement("h3");
-    nameHeading.textContent = meal.name;
-    nameHeading.style.cursor = "pointer";
-    nameHeading.onclick = () => showIngredients(meal);
-    
-    const tagsDiv = document.createElement("div");
-    tagsDiv.className = "meal-tags";
-    
-    // Add cuisine tag if it exists
-    if (meal.cuisine) {
-      const cuisineTag = document.createElement("span");
-      cuisineTag.className = "meal-tag";
-      cuisineTag.textContent = meal.cuisine;
-      tagsDiv.appendChild(cuisineTag);
-    }
-    
-    // Add main ingredient tag if it exists
-    if (meal.mainIngredient || meal['main ingredient']) {
-      const ingTag = document.createElement("span");
-      ingTag.className = "meal-tag";
-      ingTag.textContent = meal.mainIngredient || meal['main ingredient'];
-      tagsDiv.appendChild(ingTag);
-    }
-    
-    // Add goal tag if it exists
-    if (meal.goal) {
-      const goalTag = document.createElement("span");
-      goalTag.className = "meal-tag goal-tag";
-      goalTag.textContent = meal.goal;
-      tagsDiv.appendChild(goalTag);
-    }
-    
-    if (showCalories && meal.calories) {
-      const caloriesSpan = document.createElement("span");
-      caloriesSpan.className = "calories";
-      caloriesSpan.textContent = `${meal.calories} kcal`;
-      detailsDiv.appendChild(nameHeading);
-      detailsDiv.appendChild(tagsDiv);
-      detailsDiv.appendChild(caloriesSpan);
-    } else {
-      detailsDiv.appendChild(nameHeading);
-      detailsDiv.appendChild(tagsDiv);
-    }
-    
-    li.appendChild(img);
-    li.appendChild(detailsDiv);
-    list.appendChild(li);
+    mealList.appendChild(li);
   });
 }
 
@@ -350,7 +331,7 @@ function showIngredients(meal) {
   // Populate with HTML content
   recipeContainer.innerHTML = `
     <nav class="nav">
-      <a href="/" class="logo">
+      <a href="#" class="logo">
         <span class="logo-text">PREP</span>
         <svg class="logo-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M3 2L3 22"></path>
@@ -360,8 +341,8 @@ function showIngredients(meal) {
         </svg>
       </a>
       <div class="nav-tabs">
-        <button class="tab-button" onclick="document.getElementById('backToResults').click()">Find Meals</button>
-        <button class="tab-button" onclick="backToShoppingList()">Shopping List</button>
+        <button class="tab-button" data-tab="meal-finder-tab">Find Meals</button>
+        <button class="tab-button" data-tab="shopping-tab">Shopping List</button>
       </div>
     </nav>
     
@@ -396,24 +377,44 @@ function showIngredients(meal) {
             </select>
           </div>
           
-          <h3>Ingredients</h3>
-          <ul id="ingredientsList" class="ingredients-list">
-            ${ingredientsList.map(item => `
-              <li>
-                <div class="ingredient-checkbox">
-                  <input type="checkbox" id="ingredient-${item.trim().replace(/\s+/g, '-')}">
-                  <label for="ingredient-${item.trim().replace(/\s+/g, '-')}"></label>
-                </div>
-                <div class="ingredient-text">
-                  <span class="ingredient-name">${item.trim()}</span>
-                </div>
-              </li>
-            `).join('')}
-          </ul>
-          
-          <div class="ingredient-actions">
+          <div class="ingredients-header">
+            <h3>Ingredients</h3>
             <button id="selectAllIngredients" class="select-all-btn">Select All</button>
           </div>
+          
+          <ul id="ingredientsList" class="ingredients-list">
+            ${ingredientsList.map(item => {
+              const parts = item.split(":");
+              if (parts.length === 2) {
+                const [ingredient, amount] = parts;
+                const baseAmount = parseFloat(amount.replace(/[^0-9.]/g, ''));
+                const unit = amount.replace(/[0-9.]/g, '').trim();
+                return `
+                  <li>
+                    <div class="ingredient-checkbox">
+                      <input type="checkbox" id="ingredient-${ingredient.trim().replace(/\s+/g, '-')}">
+                      <label for="ingredient-${ingredient.trim().replace(/\s+/g, '-')}"></label>
+                    </div>
+                    <div class="ingredient-text">
+                      <span class="ingredient-name">${ingredient.trim()}</span>
+                      <span class="ingredient-amount" data-base-amount="${baseAmount}" data-unit="${unit}">${baseAmount} ${unit}</span>
+                    </div>
+                  </li>
+                `;
+              }
+              return `
+                <li>
+                  <div class="ingredient-checkbox">
+                    <input type="checkbox" id="ingredient-${item.trim().replace(/\s+/g, '-')}">
+                    <label for="ingredient-${item.trim().replace(/\s+/g, '-')}"></label>
+                  </div>
+                  <div class="ingredient-text">
+                    <span class="ingredient-name">${item.trim()}</span>
+                  </div>
+                </li>
+              `;
+            }).join('')}
+          </ul>
           
           <div class="recipe-actions">
             <button id="addToShoppingList" class="add-to-list-btn">Add to Shopping List</button>
@@ -429,9 +430,7 @@ function showIngredients(meal) {
                   .split(/(\d+\.)/)
                   .filter(text => text.trim())
                   .map((text, index, array) => {
-                    // If it's a number (ends with .), it's a step number
                     if (text.trim().match(/^\d+\.$/)) {
-                      // Get the next item in the array which is the step content
                       const stepContent = array[index + 1] ? array[index + 1].trim() : '';
                       return `
                         <div class="instruction-step">
@@ -440,7 +439,7 @@ function showIngredients(meal) {
                         </div>
                       `;
                     }
-                    return ''; // Return empty string for step content as it's handled with the number
+                    return '';
                   }).join('')}
               </div>
             ` : '<p>No instructions available for this recipe.</p>'}
@@ -448,7 +447,7 @@ function showIngredients(meal) {
         </div>
       </div>
       
-      <button id="backToResults" class="back-btn" onclick="backToResults()">Back to Results</button>
+      <button id="backToResults" class="back-btn">Back to Results</button>
     </div>
   `;
   
@@ -460,6 +459,40 @@ function showIngredients(meal) {
   // Set up button actions
   const addToShoppingListBtn = document.getElementById('addToShoppingList');
   const selectAllBtn = document.getElementById('selectAllIngredients');
+  const servingsSelect = document.getElementById('servingsSelect');
+  const backButton = document.getElementById('backToResults');
+  
+  // Set up tab button event listeners
+  document.querySelectorAll('.tab-button').forEach(button => {
+    button.addEventListener('click', function() {
+      const tabId = this.getAttribute('data-tab');
+      if (tabId) {
+        // Remove the recipe page
+        recipeContainer.remove();
+        
+        // Restore the original content and scrolling
+        mainContent.style.display = 'block';
+        document.body.style.overflow = 'auto';
+        
+        // Show the selected tab
+        showTab(tabId);
+      }
+    });
+  });
+  
+  // Update ingredient amounts when servings change
+  if (servingsSelect) {
+    servingsSelect.addEventListener('change', function() {
+      const multiplier = parseInt(this.value);
+      document.querySelectorAll('.ingredient-amount').forEach(amountEl => {
+        const baseAmount = parseFloat(amountEl.getAttribute('data-base-amount'));
+        const unit = amountEl.getAttribute('data-unit');
+        if (baseAmount && unit) {
+          amountEl.textContent = `${(baseAmount * multiplier).toFixed(1)} ${unit}`;
+        }
+      });
+    });
+  }
   
   if (selectAllBtn) {
     selectAllBtn.addEventListener('click', function() {
@@ -477,23 +510,11 @@ function showIngredients(meal) {
   
   if (addToShoppingListBtn) {
     addToShoppingListBtn.addEventListener('click', function() {
-      const servingsValue = parseInt(document.getElementById('servingsSelect').value);
+      const servingsValue = parseInt(servingsSelect.value);
       addToShoppingList(ingredientsList, servingsValue, meal.name);
-      
-      // Show confirmation
-      const confirmationMsg = document.createElement('div');
-      confirmationMsg.className = 'save-message';
-      confirmationMsg.textContent = 'Added to shopping list';
-      document.body.appendChild(confirmationMsg);
-      
-      setTimeout(() => {
-        confirmationMsg.remove();
-      }, 2000);
     });
   }
   
-  // Back button
-  const backButton = document.getElementById('backToResults');
   if (backButton) {
     backButton.addEventListener('click', function() {
       // Remove the recipe page
@@ -505,28 +526,28 @@ function showIngredients(meal) {
       
       // If we came from the meal inspo tab, refresh the random meals
       const activeTabButton = document.querySelector('.tab-button.active');
-      if (activeTabButton && activeTabButton.getAttribute('onclick').includes('inspiration-tab')) {
+      if (activeTabButton && activeTabButton.getAttribute('data-tab') === 'inspiration-tab') {
         displayRandomMeals();
       }
     });
   }
+
+  // Add click handler for logo after HTML is inserted
+  const logoLink = recipeContainer.querySelector('.logo');
+  logoLink.addEventListener('click', function(event) {
+    event.preventDefault();
+    recipeContainer.remove();
+    mainContent.style.display = 'block';
+    document.body.style.overflow = 'auto';
+    showTab('meal-finder-tab');
+    filterMeals();
+  });
 }
 
 function saveShoppingList() {
   const shoppingList = document.getElementById("shoppingList");
   localStorage.setItem('shoppingList', shoppingList.innerHTML);
   localStorage.setItem('selectedMeals', JSON.stringify(Array.from(selectedMeals)));
-  
-  // Show save confirmation
-  const saveMessage = document.createElement('div');
-  saveMessage.className = 'save-message';
-  saveMessage.textContent = '✓ Saved';
-  document.body.appendChild(saveMessage);
-  
-  // Remove the message after 2 seconds
-  setTimeout(() => {
-    saveMessage.remove();
-  }, 2000);
 }
 
 // Function to determine category based on ingredient name
@@ -645,31 +666,39 @@ function updateSelectedMealsSummary() {
     }
   }
   
+  // Get the shopping list to check if it has items
+  const shoppingList = document.getElementById("shoppingList");
+  const hasItems = shoppingList && shoppingList.querySelectorAll('.shopping-category').length > 0;
+  
   if (summaryHeader) {
-    if (selectedMeals.size === 0) {
+    if (!hasItems && selectedMeals.size === 0) {
+      // Only show the "click find meals" message when no meals are selected and no items in list
       summaryHeader.innerHTML = `
         <div class="shopping-list-header">
-          <h2>Your Shopping List is ready! Chef's kiss 👩‍🍳</h2>
+          <h2>Your Shopping List is empty!</h2>
           <p class="shopping-insight">Click Find Meals and come back once you've selected some tasty food! 😋</p>
         </div>
       `;
     } else {
+      // Show selected meals and insights when meals are present
       summaryHeader.innerHTML = `
         <div class="shopping-list-header">
-          <h2>Your Shopping List is ready! Chef's kiss 👩‍🍳</h2>
+          <h2>Your Shopping List</h2>
           ${insightMessage ? `<p class="shopping-insight">${insightMessage}</p>` : ''}
         </div>
-        <div class="selected-meals-counter">
-          <h3>Selected Meals (${mealCount})</h3>
-          <div id="selectedMealsList"></div>
-        </div>
+        ${selectedMeals.size > 0 ? `
+          <div class="selected-meals-counter">
+            <h3>Selected Meals (${mealCount})</h3>
+            <div id="selectedMealsList"></div>
+          </div>
+        ` : ''}
       `;
     }
   }
   
-  // Create a new list if it doesn't exist
+  // Create a new list if it doesn't exist and there are selected meals
   const mealsList = document.getElementById("selectedMealsList");
-  if (mealsList) {
+  if (mealsList && selectedMeals.size > 0) {
     mealsList.innerHTML = ''; // Clear existing content
     
     selectedMeals.forEach(mealName => {
@@ -696,6 +725,7 @@ function updateSelectedMealsSummary() {
 // Update the addToShoppingList function to include category icons
 function addToShoppingList(ingredientsList, multiplier, mealName) {
   const shoppingList = document.getElementById("shoppingList");
+  const addToShoppingListBtn = document.getElementById('addToShoppingList');
   
   // Add meal to selected meals
   selectedMeals.add(mealName);
@@ -783,6 +813,18 @@ function addToShoppingList(ingredientsList, multiplier, mealName) {
     }
   });
   
+  // Update button text to indicate items were added
+  if (addToShoppingListBtn) {
+    addToShoppingListBtn.textContent = 'Added to Shopping List';
+    addToShoppingListBtn.style.backgroundColor = 'var(--success-color, #4CAF50)';
+    
+    // Reset button after 2 seconds
+    setTimeout(() => {
+      addToShoppingListBtn.textContent = 'Add to Shopping List';
+      addToShoppingListBtn.style.backgroundColor = '';
+    }, 2000);
+  }
+  
   // Save after adding items
   saveShoppingList();
 }
@@ -844,35 +886,11 @@ function copyListToClipboard() {
     }
   });
   
-  // Copy to clipboard and show feedback
-  navigator.clipboard.writeText(text).then(() => {
-    // Create save message
-    const saveMessage = document.createElement('div');
-    saveMessage.className = 'save-message';
-    saveMessage.textContent = 'List copied to clipboard!';
-    document.body.appendChild(saveMessage);
-    
-    // Remove the message after 2 seconds
-    setTimeout(() => {
-      saveMessage.remove();
-    }, 2000);
-  }).catch(err => {
-    console.error('Failed to copy text: ', err);
-    // Show error message
-    const saveMessage = document.createElement('div');
-    saveMessage.className = 'save-message';
-    saveMessage.textContent = 'Failed to copy list';
-    saveMessage.style.backgroundColor = '#ff5555';
-    document.body.appendChild(saveMessage);
-    
-    // Remove the error message after 2 seconds
-    setTimeout(() => {
-      saveMessage.remove();
-    }, 2000);
-  });
+  // Copy to clipboard
+  navigator.clipboard.writeText(text);
 }
 
-function emailList() {
+function shareViaWhatsApp() {
   const shoppingList = document.getElementById('shoppingList');
   let text = 'Shopping List:\n\n';
   
@@ -880,7 +898,8 @@ function emailList() {
   if (selectedMeals.size > 0) {
     text += 'Selected Meals:\n';
     selectedMeals.forEach(meal => {
-      text += `- ${meal}\n`;
+      const servings = parseInt(localStorage.getItem(`servings_${meal}`)) || 1;
+      text += `- ${meal} (${servings} ${servings === 1 ? 'serving' : 'servings'})\n`;
     });
     text += '\n';
   }
@@ -889,17 +908,24 @@ function emailList() {
   const categories = shoppingList.querySelectorAll('.shopping-category');
   categories.forEach(category => {
     const categoryName = category.querySelector('.category-header').textContent;
+    // Remove the emoji from category name
+    const cleanCategoryName = categoryName.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim();
     const items = category.querySelectorAll('li');
     
-    text += `${categoryName}:\n`;
-    items.forEach(item => {
-      text += `- ${item.querySelector('span').textContent}\n`;
-    });
-    text += '\n';
+    if (items.length > 0) {
+      text += `${cleanCategoryName}\n`;
+      items.forEach(item => {
+        const ingredientName = item.querySelector('.ingredient-name').textContent;
+        const ingredientAmount = item.querySelector('.ingredient-amount').textContent;
+        text += `- ${ingredientName}: ${ingredientAmount}\n`;
+      });
+      text += '\n';
+    }
   });
   
-  const mailtoLink = `mailto:?subject=Shopping List&body=${encodeURIComponent(text)}`;
-  window.location.href = mailtoLink;
+  // Create WhatsApp share URL
+  const whatsappUrl = `whatsapp://send?text=${encodeURIComponent(text)}`;
+  window.location.href = whatsappUrl;
 }
 
 // Add this function for mobile menu

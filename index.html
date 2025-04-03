@@ -100,22 +100,25 @@
       <div id="selectedMealsSummary">
         <div class="shopping-list-header">
           <h2>Your Shopping List is ready! Chef's kiss 👩‍🍳</h2>
-        </div>
-        <div class="selected-meals-counter">
-          <h3>Selected Meals</h3>
-          <div id="selectedMealsList"></div>
+          <p class="shopping-insight">Click Find Meals and come back once you've selected some tasty food! 😋</p>
         </div>
       </div>
       
-      <div id="shoppingList">
-        <!-- Shopping categories will be populated here dynamically -->
-      </div>
+      <div id="shoppingList"></div>
       
-      <div class="shopping-actions">
-        <button onclick="clearShoppingList()" class="clear-list-btn">Clear List</button>
-        <button onclick="copyListToClipboard()" class="action-btn">Save to Notes</button>
-        <button onclick="emailList()" class="action-btn">Email List</button>
-        <button onclick="shareWhatsApp()" class="action-btn">Share via WhatsApp</button>
+      <div class="shopping-list-actions">
+        <button id="copyToNotes" class="action-button">
+          <span class="button-icon">📝</span>
+          Save to Notes
+        </button>
+        <button id="shareWhatsApp" class="action-button">
+          <span class="button-icon">📱</span>
+          Share via WhatsApp
+        </button>
+        <button onclick="clearShoppingList()" class="action-button clear-list">
+          <span class="button-icon">🗑️</span>
+          Clear List
+        </button>
       </div>
     </div>
   </div>
