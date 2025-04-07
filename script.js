@@ -668,11 +668,11 @@ function updateSelectedMealsSummary() {
   
   // Get the shopping list to check if it has items
   const shoppingList = document.getElementById("shoppingList");
-  const hasItems = shoppingList && shoppingList.querySelectorAll('.shopping-category').length > 0;
+  const hasItems = shoppingList && shoppingList.children.length > 0;
   
   if (summaryHeader) {
-    if (!hasItems && selectedMeals.size === 0) {
-      // Only show the "click find meals" message when no meals are selected and no items in list
+    if (!hasItems) {
+      // Only show the "click find meals" message when there are no items
       summaryHeader.innerHTML = `
         <div class="shopping-list-header">
           <h2>Your Shopping List is empty!</h2>
@@ -680,11 +680,26 @@ function updateSelectedMealsSummary() {
         </div>
       `;
     } else {
-      // Show selected meals and insights when meals are present
+      // Show insights when there are items
+      let headerMessage = '';
+      if (servingsCount > 0) {
+        headerMessage = insightMessage;
+      } else {
+        // Generate a random fun fact if no calorie data
+        const funFacts = [
+          "Meal prepping can save you up to 5 hours per week! 🕒",
+          "Planning meals reduces food waste by up to 40%! 🌱",
+          "Organized shopping lists can cut grocery bills by 20%! 💰",
+          "Home-cooked meals have 50% less calories than takeout! 🥗",
+          "You're on your way to healthier eating habits! 💪"
+        ];
+        headerMessage = funFacts[Math.floor(Math.random() * funFacts.length)];
+      }
+      
       summaryHeader.innerHTML = `
         <div class="shopping-list-header">
           <h2>Your Shopping List</h2>
-          ${insightMessage ? `<p class="shopping-insight">${insightMessage}</p>` : ''}
+          <p class="shopping-insight">${headerMessage}</p>
         </div>
         ${selectedMeals.size > 0 ? `
           <div class="selected-meals-counter">
@@ -733,9 +748,11 @@ function addToShoppingList(ingredientsList, multiplier, mealName) {
   // Store the servings count in localStorage
   localStorage.setItem(`servings_${mealName}`, multiplier.toString());
   
-  updateSelectedMealsSummary();
+  // Find the current meal to get calorie information
+  const currentMeal = meals.find(m => m.name === mealName);
+  console.log("Adding meal to shopping list:", currentMeal); // Debug log
   
-  // Process each ingredient
+  // Process each ingredient first
   ingredientsList.forEach(item => {
     const parts = item.split(":");
     if (parts.length === 2) {
@@ -813,6 +830,57 @@ function addToShoppingList(ingredientsList, multiplier, mealName) {
     }
   });
   
+  // Save the shopping list
+  saveShoppingList();
+  
+  // Update the shopping list header with insights
+  const summaryHeader = document.getElementById("selectedMealsSummary");
+  if (summaryHeader) {
+    // Calculate total calories for this meal
+    let totalCalories = 0;
+    let servingsCount = 0;
+    
+    selectedMeals.forEach(name => {
+      const meal = meals.find(m => m.name === name);
+      if (meal && meal.calories) {
+        const servings = parseInt(localStorage.getItem(`servings_${name}`)) || 1;
+        totalCalories += parseInt(meal.calories) * servings;
+        servingsCount += servings;
+      }
+    });
+    
+    const averageCalories = servingsCount > 0 ? Math.round(totalCalories / servingsCount) : 0;
+    console.log("Calories calculation:", { totalCalories, servingsCount, averageCalories }); // Debug log
+    
+    let insightMessage = '';
+    if (servingsCount > 0) {
+      if (averageCalories < 500) {
+        insightMessage = `You're averaging ${averageCalories} calories per serving. Perfect for light, nutritious eating! 🌱`;
+      } else if (averageCalories < 800) {
+        insightMessage = `You're averaging ${averageCalories} calories per serving. Great balance of nutrition and energy! ⚖️`;
+      } else {
+        insightMessage = `You're averaging ${averageCalories} calories per serving. Perfect for active lifestyles! 💪`;
+      }
+    } else {
+      // If no calorie data, show a random fun fact
+      const funFacts = [
+        "Meal prepping can save you up to 5 hours per week! 🕒",
+        "Planning meals reduces food waste by up to 40%! 🌱",
+        "Organized shopping lists can cut grocery bills by 20%! 💰",
+        "Home-cooked meals have 50% less calories than takeout! 🥗",
+        "You're on your way to healthier eating habits! 💪"
+      ];
+      insightMessage = funFacts[Math.floor(Math.random() * funFacts.length)];
+    }
+    
+    summaryHeader.innerHTML = `
+      <div class="shopping-list-header">
+        <h2>Your Shopping List</h2>
+        <p class="shopping-insight">${insightMessage}</p>
+      </div>
+    `;
+  }
+  
   // Update button text to indicate items were added
   if (addToShoppingListBtn) {
     addToShoppingListBtn.textContent = 'Added to Shopping List';
@@ -825,8 +893,8 @@ function addToShoppingList(ingredientsList, multiplier, mealName) {
     }, 2000);
   }
   
-  // Save after adding items
-  saveShoppingList();
+  // Switch to shopping list tab
+  showTab('shopping-tab');
 }
 
 // Function to remove item from shopping list
@@ -997,4 +1065,125 @@ function displayRandomMeals() {
     
     randomMealList.appendChild(mealCard);
   });
+}
+
+// Function to remove meal from list
+function removeMealFromList(mealName) {
+  // Remove from selected meals
+  selectedMeals.delete(mealName);
+  
+  // Remove servings from localStorage
+  localStorage.removeItem(`servings_${mealName}`);
+  
+  // Remove ingredients for this meal from shopping list
+  const meal = meals.find(m => m.name === mealName);
+  if (meal && meal.ingredients) {
+    const ingredients = meal.ingredients.split(',').map(i => i.trim());
+    ingredients.forEach(ingredient => {
+      const ingredientName = ingredient.split(':')[0].trim();
+      document.querySelectorAll('.category-items li').forEach(li => {
+        if (li.dataset.ingredient === ingredientName) {
+          li.remove();
+        }
+      });
+    });
+    
+    // Remove empty categories
+    document.querySelectorAll('.shopping-category').forEach(category => {
+      if (category.querySelector('.category-items').children.length === 0) {
+        category.remove();
+      }
+    });
+  }
+  
+  // Update the shopping list header with insights
+  const summaryHeader = document.getElementById("selectedMealsSummary");
+  if (summaryHeader) {
+    // Calculate total calories
+    let totalCalories = 0;
+    let servingsCount = 0;
+    
+    selectedMeals.forEach(name => {
+      const meal = meals.find(m => m.name === name);
+      if (meal && meal.calories) {
+        const servings = parseInt(localStorage.getItem(`servings_${name}`)) || 1;
+        totalCalories += parseInt(meal.calories) * servings;
+        servingsCount += servings;
+      }
+    });
+    
+    const averageCalories = servingsCount > 0 ? Math.round(totalCalories / servingsCount) : 0;
+    console.log("Calories calculation after removal:", { totalCalories, servingsCount, averageCalories }); // Debug log
+    
+    let insightMessage = '';
+    if (servingsCount > 0) {
+      if (averageCalories < 500) {
+        insightMessage = `You're averaging ${averageCalories} calories per serving. Perfect for light, nutritious eating! 🌱`;
+      } else if (averageCalories < 800) {
+        insightMessage = `You're averaging ${averageCalories} calories per serving. Great balance of nutrition and energy! ⚖️`;
+      } else {
+        insightMessage = `You're averaging ${averageCalories} calories per serving. Perfect for active lifestyles! 💪`;
+      }
+    } else {
+      // If shopping list is empty, show the default message
+      if (document.querySelectorAll('.shopping-category').length === 0) {
+        summaryHeader.innerHTML = `
+          <div class="shopping-list-header">
+            <h2>Your Shopping List is empty!</h2>
+            <p class="shopping-insight">Click Find Meals and come back once you've selected some tasty food! 😋</p>
+          </div>
+        `;
+        saveShoppingList();
+        return;
+      }
+      // Otherwise show a fun fact
+      const funFacts = [
+        "Meal prepping can save you up to 5 hours per week! 🕒",
+        "Planning meals reduces food waste by up to 40%! 🌱",
+        "Organized shopping lists can cut grocery bills by 20%! 💰",
+        "Home-cooked meals have 50% less calories than takeout! 🥗",
+        "You're on your way to healthier eating habits! 💪"
+      ];
+      insightMessage = funFacts[Math.floor(Math.random() * funFacts.length)];
+    }
+    
+    summaryHeader.innerHTML = `
+      <div class="shopping-list-header">
+        <h2>Your Shopping List</h2>
+        <p class="shopping-insight">${insightMessage}</p>
+      </div>
+      ${selectedMeals.size > 0 ? `
+        <div class="selected-meals-counter">
+          <h3>Selected Meals (${selectedMeals.size})</h3>
+          <div id="selectedMealsList"></div>
+        </div>
+      ` : ''}
+    `;
+    
+    // Update the selected meals list
+    const mealsList = document.getElementById("selectedMealsList");
+    if (mealsList) {
+      mealsList.innerHTML = '';
+      selectedMeals.forEach(name => {
+        const meal = meals.find(m => m.name === name);
+        const calories = meal ? meal.calories : null;
+        const servings = parseInt(localStorage.getItem(`servings_${name}`)) || 1;
+        const li = document.createElement("li");
+        li.className = "selected-meal-item";
+        li.innerHTML = `
+          <div class="meal-info">
+            <span class="meal-name">${name}</span>
+            <div class="meal-details">
+              ${calories ? `<span class="meal-calories">${calories} cal per serving</span>` : ''}
+              <span class="meal-servings">${servings} ${servings === 1 ? 'serving' : 'servings'}</span>
+            </div>
+          </div>
+          <button class="remove-item" onclick="removeMealFromList('${name}')">×</button>
+        `;
+        mealsList.appendChild(li);
+      });
+    }
+  }
+  
+  saveShoppingList();
 }
